@@ -11,13 +11,19 @@ const localLogin = new LocalStrategy(localOptions,function(email,password,done){
 	User.findOne({ email: email }, function(err,user){
 		if (err){ return done(err);}
 		if (!user) { return done(null, false);}
-		console.log(password)
-		user.comparePassword(password, function(err, isMatch){
-			if (err) { return done()}
-			if (!isMatch) { return done(null,false); }
+		console.log(password);
+		console.log(user)
+		if(user.confirmation_at){
+			console.log("Confirmed")
+			user.comparePassword(password, function(err, isMatch){
+				if (err) { return done()}
+				if (!isMatch) { return done(null,false); }
 
-			return done(null, user);
-		});
+				return done(null, user);
+			});
+		}else{
+			return done(null,false);
+		}
 
 	});
 
