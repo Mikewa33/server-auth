@@ -11,7 +11,9 @@ const userSchema = new Schema({
 	reset_token_sent_at: Date,
 	confirmation_token: { type:String, unique: true},
 	confirmation_token_sent_at: Date,
-	confirmation_at: Date
+	confirmation_at: Date,
+	refresh_token: { type: String, unique: true},
+	refresh_token_sent_at: Date
 
 });
 

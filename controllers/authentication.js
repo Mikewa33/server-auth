@@ -6,24 +6,55 @@ const nodemailer = require('nodemailer');
 
 function tokenForUser(user){
 	const timestamp = new Date().getTime();
-	return jwt.encode({ sub: user.id, iat: timestamp },config.secret);
+	return jwt.encode({ sub: user.id, iat: timestamp, expires: (timestamp+25)  },config.secret);
+	//return jwt.encode({ sub: user.id, iat: timestamp, expires: (timestamp+86400000)  },config.secret);
+	
+}
+
+function refreshToken(user){
+	const timestamp = new Date().getTime();
+	return jwt.encode({ refresh: user.refresh_token, iat: timestamp },config.secret);
+}
+
+exports.refreshing = function(req, res, next){
+	var user = req.user;
+	user.refresh_token = uuid.v4();
+	user.refresh_token_sent_at = Date.now();
+	user.save(function(err) {
+        if (err) { return next(err); }
+	});
+	res.send({ token: tokenForUser(req.user) , refreshToken: refreshToken(req.user)});
 }
 
 exports.signin = function(req, res, next){
 	//Just need to give a token
-	res.send({ token: tokenForUser(req.user)})
+	var user = req.user;
+	console.log("Before");
+	console.log(user.refresh_token);
+	user.refresh_token = uuid.v4();
+	console.log("After")
+	console.log(user.refresh_token);
+	user.refresh_token_sent_at = Date.now();
+	user.save(function(err) {
+        if (err) { return next(err); }
+        console.log("save");
+        console.log(user.refresh_token)
+	});
+	res.send({ token: tokenForUser(req.user) , refreshToken: refreshToken(req.user)});
 }
 
 exports.confirmation = function(req,res,next){
-	console.log(req)
 	User.findOne({ confirmation_token: req.body.token }, function(err, user) {
 	    if (err) { return next(err); }
 
+	    if (user) {
+		      return res.status(422).send({ error: 'Please contact support confimation token invaild' });
+		}
 	    user.confirmation_at = Date.now();
 	    user.save(function(err) {
 	      if (err) { return next(err); }
 
-	      res.json({ token: tokenForUser(user) });
+	      res.send({ token: tokenForUser(req.user) , refreshToken: refreshToken(req.user)});
 	  	});
 
 	});
@@ -47,17 +78,17 @@ exports.signup = function(req,res,next){
 	    if (existingUser) {
 	      return res.status(422).send({ error: 'Email is in use' });
 	    }
-	    console.log("before make")
     	// If a user with email does NOT exist, create and save user record
 	    const user = new User({
 	      email: email,
 	      password: password,
 	      confirmation_token: uuid.v4(),
-	      confirmation_token_sent_at: Date.now()
+	      confirmation_token_sent_at: Date.now(),
+	      refresh_token:  uuid.v4(),
+		  refresh_token_sent_at: Date.now()
 	    });
-	    console.log(user);
 	    user.save(function(err) {
-	      if (err) { return next(err); }
+	      if (err) { return res.status(422).send({ error: 'Couldnt process try again in a little' }); }
 	      let transporter = nodemailer.createTransport({
 			    service: 'gmail',
 			    auth: {
@@ -73,10 +104,9 @@ exports.signup = function(req,res,next){
 			    text: 'Please click this link to confirm your'+'\n\n' +
 		        'http://' + req.headers.origin + '/confirmation?token=' + user.confirmation_token
 			};
-			console.log("sending email")
 			transporter.sendMail(mailOptions, (error, info) => {
 			    if (error) {
-			        return console.log(error);
+			         return res.status(422).send({ error: 'Couldnt send confirmation email. Contact support' });
 			    }
 			    res.json({ return_msg:"Plase confirm email" });
 			});
@@ -88,16 +118,12 @@ exports.signup = function(req,res,next){
 }
 
 exports.resetpassword = function(req,res,next){
-	console.log("RESET")
-	console.log(req.body)
 	User.findOne({ reset_token: req.body.token_query, reset_token_sent_at: { $gt: Date.now() } }, function(err, user) {
         if (!user) {
           //res.json({ return_msg: 'Password reset token is invalid or has expired.'});
           res.status(422).send({ error: 'YOu must provide email and password'});
           //return res.redirect('back');
         }
-        console.log(user)
-        console.log(req.body)
         user.password = req.body.password;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
@@ -116,13 +142,11 @@ exports.resetpassword = function(req,res,next){
 			    subject: 'Node.js Password Reset', // Subject line
 			    text: 'This is a confirmation that the password for your account ' + user.email + ' has just been changed.\n'
 			};
-			console.log("sending email")
 			transporter.sendMail(mailOptions, (error, info) => {
 			    if (error) {
-			        return console.log(error);
+			        return res.status(422).send({ error: 'Couldnt send confirmation email but password reset' });
 			    }
 			    //req.flash('info', 'An e-mail has been sent to ' + user.email + ' with further instructions.');
-			    console.log('Message %s sent: %s', info.messageId, info.response);
 			    res.json({ return_msg:  'Your password has been reset' });
 			});
         });
@@ -131,28 +155,19 @@ exports.resetpassword = function(req,res,next){
 
 
 exports.forgotpassword = function(req,res,next){
-	console.log("FORGOT PASSWORD");
 	const email = req.body.email;
-	console.log("HHHIIII")
 	if (!email) {
 		return res.status(422).send({ error: 'You must provide email'});
 	}
-	console.log("NO EMAIL?");
-	console.log(req.body.email)
 	User.findOne({ email: email }, function(err, user){
-		console.log("found something")
 		if(!user){
-			console.log("REDIRTED BACK ERROR")
 			res.json({ return_msg:  'error' });
 			//return res.redirect('/forgotpassword');
 		}
-		console.log("USER?")
 		user.reset_token = uuid.v4();
-		console.log("token issue")
 		user.reset_token_sent_at = Date.now() + 3600000; // 1 hour
-		console.log("error here")
 		user.save(function(err) {
-         	if (err) { return next(err); }
+         	if (err) { return res.status(422).send({ error: 'Couldnt send reset email. Try again in a little' }); }
 
          	let transporter = nodemailer.createTransport({
 			    service: 'gmail',
@@ -161,7 +176,6 @@ exports.forgotpassword = function(req,res,next){
 			        pass: config.gpassword
 			    }
 			});
-         	console.log(req.headers)
 			// setup email data with unicode symbols
 			let mailOptions = {
 			    from: 'passwordreset@demo.com', // sender address
@@ -172,14 +186,11 @@ exports.forgotpassword = function(req,res,next){
 		        'http://' + req.headers.origin + '/resetpassword?reset=' + user.reset_token + '\n\n' +
 		        'If you did not request this, please ignore this email and your password will remain unchanged.\n'
 			};
-			console.log("sending email")
 			transporter.sendMail(mailOptions, (error, info) => {
 			    if (error) {
-			        return console.log(error);
+			        return res.status(422).send({ error: 'Couldnt send reset email. Try again in a little' });
 			    }
-			    console.log("SENT EMAIL")
 			    //req.flash('info', 'An e-mail has been sent to ' + user.email + ' with further instructions.');
-			    console.log('Message %s sent: %s', info.messageId, info.response);
 			    res.json({ return_msg:  'An e-mail has been sent to ' + user.email + ' with further instructions.' });
 			});
         });
