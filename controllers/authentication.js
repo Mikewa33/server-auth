@@ -1,12 +1,13 @@
 const jwt = require('jwt-simple');
 const User = require('../models/user');
+const Admin = require('../models/admin');
 const config = require('../config');
 const uuid = require('node-uuid');
 const nodemailer = require('nodemailer');
 
 function tokenForUser(user){
 	const timestamp = new Date().getTime();
-	return jwt.encode({ sub: user.id, iat: timestamp, expires: (timestamp+25)  },config.secret);
+	return jwt.encode({ sub: user.id, iat: timestamp, expires: (timestamp+ 86400000 )  },config.secret);
 	//return jwt.encode({ sub: user.id, iat: timestamp, expires: (timestamp+86400000)  },config.secret);
 	
 }
@@ -14,6 +15,18 @@ function tokenForUser(user){
 function refreshToken(user){
 	const timestamp = new Date().getTime();
 	return jwt.encode({ refresh: user.refresh_token, iat: timestamp },config.secret);
+}
+
+function tokenForAdmin(admin){
+	const timestamp = new Date().getTime();
+	return jwt.encode({ sub: admin.id, iat: timestamp, expires: (timestamp+ 7200000), adminToken: true  },config.admin_secret);
+	//return jwt.encode({ sub: user.id, iat: timestamp, expires: (timestamp+86400000)  },config.secret);
+	
+}
+
+function refreshTokenAdmin(admin){
+	const timestamp = new Date().getTime();
+	return jwt.encode({ refresh: admin.refresh_token, iat: timestamp, adminToken: true },config.admin_secret);
 }
 
 exports.refreshing = function(req, res, next){
@@ -26,14 +39,20 @@ exports.refreshing = function(req, res, next){
 	res.send({ token: tokenForUser(req.user) , refreshToken: refreshToken(req.user)});
 }
 
+exports.refreshingAdmin = function(req, res, next){
+	var admin = req.user;
+	admin.refresh_token = uuid.v4();
+	admin.refresh_token_sent_at = Date.now();
+	admin.save(function(err) {
+        if (err) { return next(err); }
+	});
+	res.send({ token: tokenForAdmin(admin) , refreshToken: refreshTokenAdmin(admin)});
+}
+
 exports.signin = function(req, res, next){
 	//Just need to give a token
 	var user = req.user;
-	console.log("Before");
-	console.log(user.refresh_token);
 	user.refresh_token = uuid.v4();
-	console.log("After")
-	console.log(user.refresh_token);
 	user.refresh_token_sent_at = Date.now();
 	user.save(function(err) {
         if (err) { return next(err); }
@@ -41,6 +60,21 @@ exports.signin = function(req, res, next){
         console.log(user.refresh_token)
 	});
 	res.send({ token: tokenForUser(req.user) , refreshToken: refreshToken(req.user)});
+}
+
+exports.adminSignin = function(req, res, next){
+	//Just need to give a token
+	console.log("THIS FAR");
+	console.log(req)
+	var admin = req.user;
+	admin.refresh_token = uuid.v4();
+	admin.refresh_token_sent_at = Date.now();
+	admin.save(function(err) {
+        if (err) { return next(err); }
+        console.log("save");
+        console.log(admin.refresh_token)
+	});
+	res.send({ token: tokenForAdmin(admin) , refreshToken: refreshTokenAdmin(admin)});
 }
 
 exports.confirmation = function(req,res,next){

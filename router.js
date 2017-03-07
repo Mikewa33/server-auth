@@ -16,4 +16,6 @@ module.exports = function(app) {
   app.post('/resetpassword', Authentication.resetpassword);
   app.post('/confirmation', Authentication.confirmation);
   app.get('/refreshing', requireAuth, Authentication.refreshing);
+  app.post('/adminSignin', requireSignin, Authentication.adminSignin);
+  app.get('/refreshingAdmin', requireAuth, Authentication.refreshingAdmin);
 }
