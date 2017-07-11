@@ -9,7 +9,7 @@ function tokenForUser(user){
 	const timestamp = new Date().getTime();
 	return jwt.encode({ sub: user.id, iat: timestamp, expires: (timestamp+ 86400000 )  },config.secret);
 	//return jwt.encode({ sub: user.id, iat: timestamp, expires: (timestamp+86400000)  },config.secret);
-	
+
 }
 
 function refreshToken(user){
@@ -21,7 +21,7 @@ function tokenForAdmin(admin){
 	const timestamp = new Date().getTime();
 	return jwt.encode({ sub: admin.id, iat: timestamp, expires: (timestamp+ 7200000), adminToken: true  },config.admin_secret);
 	//return jwt.encode({ sub: user.id, iat: timestamp, expires: (timestamp+86400000)  },config.secret);
-	
+
 }
 
 function refreshTokenAdmin(admin){
@@ -96,7 +96,7 @@ exports.confirmation = function(req,res,next){
 
 exports.signup = function(req,res,next){
 	// See if a user with the given email exists
-	const email = req.body.email
+	const email = req.body.email;
 	const password = req.body.password;
 
 	if (!email || !password) {
@@ -119,7 +119,7 @@ exports.signup = function(req,res,next){
 	      confirmation_token: uuid.v4(),
 	      confirmation_token_sent_at: Date.now(),
 	      refresh_token:  uuid.v4(),
-		  refresh_token_sent_at: Date.now()
+		  	refresh_token_sent_at: Date.now()
 	    });
 	    user.save(function(err) {
 	      if (err) { return res.status(422).send({ error: 'Couldnt process try again in a little' }); }
@@ -145,7 +145,7 @@ exports.signup = function(req,res,next){
 			    res.json({ return_msg:"Plase confirm email" });
 			});
 	      // Repond to request indicating the user was created
-	     
+
 	    });
   	});
 	//Respond to request indicating the user was created
@@ -155,7 +155,7 @@ exports.resetpassword = function(req,res,next){
 	User.findOne({ reset_token: req.body.token_query, reset_token_sent_at: { $gt: Date.now() } }, function(err, user) {
         if (!user) {
           //res.json({ return_msg: 'Password reset token is invalid or has expired.'});
-          res.status(422).send({ error: 'YOu must provide email and password'});
+          res.status(422).send({ error: 'You must provide email and password'});
           //return res.redirect('back');
         }
         user.password = req.body.password;

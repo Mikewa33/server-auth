@@ -25,7 +25,6 @@ userSchema.pre('save',function (next) {
 			if(err) { return next(err);}
 			bcrypt.hash(user.password, salt, null, function(err,hash){
 				if(err) {return next(err);}
-				console.log(hash)
 				user.password = hash;
 				next();
 			});
@@ -36,11 +35,8 @@ userSchema.pre('save',function (next) {
 });
 
 userSchema.methods.comparePassword = function(candidatePassword, callback){
-	console.log(this.password);
 	bcrypt.compare(candidatePassword, this.password, function(err, isMatch){
 		if (err) { return callback(err);}
-		console.log("COMPARE");
-		console.log(candidatePassword);
 		callback(null, isMatch);
 	});
 }

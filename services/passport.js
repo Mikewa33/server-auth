@@ -8,33 +8,21 @@ const LocalStrategy = require('passport-local');
 
 const localOptions = { usernameField: 'email' };
 const localLogin = new LocalStrategy(localOptions,function(email,password,done){
-	console.log(email);
-	console.log("HI")
 	User.findOne({ email: email }, function(err,user){
 		if (err){ return done(err);}
-		console.log(user);
-		console.log("HERE");
-		if (!user) { 
-			console.log("if statement");
-			console.log(email)
+		if (!user) {
 			Admin.findOne({ email: email }, function(err,admin){
-				console.log(email);
-				console.log(admin);
-				console.log("query")
 				if (err){ return done(err);}
 				if (!admin) {  return done(null,false); }
 				admin.comparePassword(password, function(err, isMatch){
-					console.log("compare");
 					if (err) { return done()}
 					if (!isMatch) { return done(null,false); }
 
 					return done(null, admin);
-				});				 
+				});
 			});
-			console.log("WHAT?")
 		}
 		else if(user.confirmation_at){
-			console.log("Confirmed")
 			user.comparePassword(password, function(err, isMatch){
 				if (err) { return done()}
 				if (!isMatch) { return done(null,false); }
@@ -47,7 +35,7 @@ const localLogin = new LocalStrategy(localOptions,function(email,password,done){
 
 	});
 
-	
+
 });
 //Set up options for JWT Strat
 const jwtOptions = {
@@ -68,7 +56,7 @@ const jwtCallBack = function(payload,done) {
 //const jwtLogin = new JwtStrategy(jwtOptions,jwtCallBack );
 const jwtRefresh = new JwtStrategy(jwtOptions, function(payload, done){
 	const timestamp = new Date.getTime();
-	
+
 });
 
 const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
@@ -94,7 +82,6 @@ const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
 		else{
 			User.findOne({ refresh_token: payload.refresh }, function(err, user) {
 				if (err) { return done(err, false); }
-				console.log(user);
 			    if (user) {
 			      done(null, user);
 			    } else {
@@ -102,7 +89,7 @@ const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
 			    }
 			});
 		}
-		
+
 	}else{
 		if(timestamp > payload.expires){
 		  	return done(null,false);
