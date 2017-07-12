@@ -95,7 +95,7 @@ const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
 		  	return done(null,false);
 		}
 		if(payload.adminToken){
-			Admin.findOne({ refresh_token: payload.refresh }, function(err, admin) {
+			Admin.findById(payload.sub, function(err, admin) {
 				if (err) { return done(err, false); }
 			    if (admin) {
 			      done(null, admin);
@@ -109,7 +109,6 @@ const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
 				if (err) { return done(err, false); }
 
 			    if (user) {
-			    	console.log("still comes here")
 			        done(null, user);
 			    } else {
 					done(null, false);

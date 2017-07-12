@@ -56,23 +56,17 @@ exports.signin = function(req, res, next){
 	user.refresh_token_sent_at = Date.now();
 	user.save(function(err) {
         if (err) { return next(err); }
-        console.log("save");
-        console.log(user.refresh_token)
 	});
 	res.send({ token: tokenForUser(req.user) , refreshToken: refreshToken(req.user)});
 }
 
 exports.adminSignin = function(req, res, next){
 	//Just need to give a token
-	console.log("THIS FAR");
-	console.log(req)
 	var admin = req.user;
 	admin.refresh_token = uuid.v4();
 	admin.refresh_token_sent_at = Date.now();
 	admin.save(function(err) {
         if (err) { return next(err); }
-        console.log("save");
-        console.log(admin.refresh_token)
 	});
 	res.send({ token: tokenForAdmin(admin) , refreshToken: refreshTokenAdmin(admin)});
 }
@@ -80,15 +74,14 @@ exports.adminSignin = function(req, res, next){
 exports.confirmation = function(req,res,next){
 	User.findOne({ confirmation_token: req.body.token }, function(err, user) {
 	    if (err) { return next(err); }
-
-	    if (user) {
+	    if (!user) {
 		      return res.status(422).send({ error: 'Please contact support confimation token invaild' });
-		}
+			}
 	    user.confirmation_at = Date.now();
 	    user.save(function(err) {
 	      if (err) { return next(err); }
 
-	      res.send({ token: tokenForUser(req.user) , refreshToken: refreshToken(req.user)});
+	      res.send({ token: tokenForUser(user) , refreshToken: refreshToken(user)});
 	  	});
 
 	});
@@ -100,7 +93,7 @@ exports.signup = function(req,res,next){
 	const password = req.body.password;
 
 	if (!email || !password) {
-		return res.status(422).send({ error: 'YOu must provide email and password'});
+		return res.status(422).send({ error: 'You must provide email and password'});
 	}
 	// if a user with the email does exist, return an error
 
@@ -145,7 +138,6 @@ exports.signup = function(req,res,next){
 			    res.json({ return_msg:"Plase confirm email" });
 			});
 	      // Repond to request indicating the user was created
-
 	    });
   	});
 	//Respond to request indicating the user was created
