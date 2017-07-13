@@ -5,12 +5,19 @@
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha --recursive",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "coverage": "istanbul cover node_modules/.bin/_mocha -- -- -u exports -R spec test/**/*"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-core": "^6.25.0",
+    "babel-loader": "^6.3.2",
+    "babel-register": "^6.24.1",
     "chai": "^4.0.2",
+    "isparta": "^4.0.0",
+    "istanbul": "^0.4.5",
     "mocha": "^3.4.2",
     "supertest": "^3.0.0"
   },
@@ -19,6 +26,8 @@
     "body-parser": "^1.17.0",
     "cors": "^2.8.1",
     "express": "^4.15.0",
+    "jsdom": "^11.1.0",
+    "jsdom-global": "^3.0.2",
     "jwt-simple": "^0.5.1",
     "mongoose": "^4.8.5",
     "morgan": "^1.8.1",

@@ -147,7 +147,7 @@ exports.resetpassword = function(req,res,next){
 	User.findOne({ reset_token: req.body.token_query, reset_token_sent_at: { $gt: Date.now() } }, function(err, user) {
         if (!user) {
           //res.json({ return_msg: 'Password reset token is invalid or has expired.'});
-          res.status(422).send({ error: 'You must provide email and password'});
+          return res.status(422).send({ error: 'Your token is invaild or expired'});
           //return res.redirect('back');
         }
         user.password = req.body.password;
@@ -187,7 +187,7 @@ exports.forgotpassword = function(req,res,next){
 	}
 	User.findOne({ email: email }, function(err, user){
 		if(!user){
-			res.json({ return_msg:  'error' });
+			return res.json({ return_msg:  'Error invaild email' });
 			//return res.redirect('/forgotpassword');
 		}
 		user.reset_token = uuid.v4();
