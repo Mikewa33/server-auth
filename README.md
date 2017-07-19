@@ -1,3 +1,3 @@
 # server-auth
 
-Requires token invaildation and reseting
+Mircoservice Server side in Node.js for creating and authorizing users. With test written in mocha
