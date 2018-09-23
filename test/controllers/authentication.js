@@ -265,9 +265,7 @@ describe('Refresh Token functions', function () {
         });
      });
   });
-
 });
-
 
 describe('Sign In Function', function () {
   this.timeout(15000);
