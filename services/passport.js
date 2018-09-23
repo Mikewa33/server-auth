@@ -34,8 +34,6 @@ const localLogin = new LocalStrategy(localOptions,function(email,password,done){
 		}
 
 	});
-
-
 });
 //Set up options for JWT Strat
 const jwtOptions = {
@@ -64,53 +62,52 @@ const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
 	// If it does, call 'done' with that other
 	// otherwise, call done without a user object
 	const timestamp = new Date().getTime();
-    if(payload.refresh){
-    	var refresh_time = payload.iat;
-	  	if(timestamp >  refresh_time+ 604800000){
+  if(payload.refresh){
+		var refresh_time = payload.iat;
+		if(timestamp >  refresh_time+ 604800000){
 			return done(null,false);
-		};
+		}
 		if(payload.adminToken){
 			Admin.findOne({ refresh_token: payload.refresh }, function(err, admin) {
 				if (err) { return done(err, false); }
-			    if (admin) {
-			      done(null, admin);
+		    	if (admin) {
+		      	done(null, admin);
 			    } else {
-			      done(null, false);
-			    }
+			    	done(null, false);
+			  	}
 			});
 		}
 		else{
 			User.findOne({ refresh_token: payload.refresh }, function(err, user) {
 				if (err) { return done(err, false); }
 			    if (user) {
-			      done(null, user);
-			    } else {
-			      done(null, false);
-			    }
+			    	done(null, user);
+			  	} else {
+		      	done(null, false);
+		    	}
 			});
 		}
-
 	}else{
 		if(timestamp > payload.expires){
-		  	return done(null,false);
+	  	return done(null,false);
 		}
 		if(payload.adminToken){
 			Admin.findById(payload.sub, function(err, admin) {
 				if (err) { return done(err, false); }
-			    if (admin) {
-			      done(null, admin);
-			    } else {
-			      done(null, false);
-			    }
+			  if (admin) {
+		    	done(null, admin);
+		  	} else {
+		      done(null, false);
+		    }
 			});
 		}
 		else{
 			User.findById(payload.sub, function(err, user) {
 				if (err) { return done(err, false); }
-
-			    if (user) {
-			        done(null, user);
-			    } else {
+		    if (user) {
+			    done(null, user);
+				} 
+				else {
 					done(null, false);
 				}
 			});

@@ -91,8 +91,9 @@ exports.signup = function(req,res,next){
 	// See if a user with the given email exists
 	const email = req.body.email;
 	const password = req.body.password;
-
-	if (!email || !password) {
+	const username = req.body.username;
+	//if (!email || !password) for email sign in
+	if (!email || !password || !username) {
 		return res.status(422).send({ error: 'You must provide email and password'});
 	}
 	// if a user with the email does exist, return an error
@@ -104,41 +105,49 @@ exports.signup = function(req,res,next){
 	    // If a user with email does exist, return an error
 	    if (existingUser) {
 	      return res.status(422).send({ error: 'Email is in use' });
-	    }
-    	// If a user with email does NOT exist, create and save user record
-	    const user = new User({
-	      email: email,
-	      password: password,
-	      confirmation_token: uuid.v4(),
-	      confirmation_token_sent_at: Date.now(),
-	      refresh_token:  uuid.v4(),
-		  	refresh_token_sent_at: Date.now()
-	    });
-	    user.save(function(err) {
-	      if (err) { return res.status(422).send({ error: 'Couldnt process try again in a little' }); }
-	      let transporter = nodemailer.createTransport({
-			    service: 'gmail',
-			    auth: {
-			        user: config.gemail,
-			        pass: config.gpassword
-			    }
+		}
+		//Remove if you don't want to use username
+		User.findOne({ username: username }, function(err, usernameUser) {
+			if (usernameUser) {
+				return res.status(422).send({ error: 'Username is in use' });
+			}
+    		// If a user with email and username does NOT exist, create and save user record
+			const user = new User({
+				email: email,
+				username: username,
+				password: password,
+				confirmation_token: uuid.v4(),
+				confirmation_token_sent_at: Date.now(),
+				refresh_token:  uuid.v4(),
+				refresh_token_sent_at: Date.now()
 			});
-			// setup email data with unicode symbols
-			let mailOptions = {
-			    from: 'passwordreset@demo.com', // sender address
-			    to: user.email, // list of receivers
-			    subject: 'Node.js confirmation', // Subject line
-			    text: 'Please click this link to confirm your'+'\n\n' +
-		        'http://' + req.headers.origin + '/confirmation?token=' + user.confirmation_token
-			};
-			transporter.sendMail(mailOptions, (error, info) => {
-			    if (error) {
-			         return res.status(422).send({ error: 'Couldnt send confirmation email. Contact support' });
-			    }
-			    res.json({ return_msg:"Plase confirm email" });
+
+			user.save(function(err) {
+				if (err) { return res.status(422).send({ error: 'Couldnt process try again in a little' }); }
+				let transporter = nodemailer.createTransport({
+					service: 'gmail',
+					auth: {
+						user: config.gemail,
+						pass: config.gpassword
+					}
+				});
+				// setup email data with unicode symbols
+				let mailOptions = {
+					from: 'passwordreset@demo.com', // sender address
+					to: user.email, // list of receivers
+					subject: 'Node.js confirmation', // Subject line
+					text: 'Please click this link to confirm your'+'\n\n' +
+					'http://' + req.headers.origin + '/confirmation?token=' + user.confirmation_token
+				};
+				transporter.sendMail(mailOptions, (error, info) => {
+					if (error) {
+						return res.status(422).send({ error: 'Couldnt send confirmation email. Contact support' });
+					}
+					return res.json({ return_msg:"Please confirm email" });
+				});
+				// Repond to request indicating the user was created
 			});
-	      // Repond to request indicating the user was created
-	    });
+		});
   	});
 	//Respond to request indicating the user was created
 }

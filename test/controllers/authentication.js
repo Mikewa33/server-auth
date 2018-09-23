@@ -14,12 +14,13 @@ describe('SignUp function', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015@gmail.com",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function (err, res) {
-        expect(res.body.return_msg).to.equal("Plase confirm email");
+        expect(res.body.return_msg).to.equal("Please confirm email");
         done();
       });
   });
@@ -28,16 +29,18 @@ describe('SignUp function', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015@gmail.com",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function (err, res) {
-        expect(res.body.return_msg).to.equal("Plase confirm email");
+        expect(res.body.return_msg).to.equal("Please confirm email");
         request(server)
           .post('/signup')
           .send({
             'email': "mikewalters015@gmail.com",
+            'username': 'username2',
             'password': 'testPassword1'
           })
           .expect('Content-Type', /json/)
@@ -48,12 +51,40 @@ describe('SignUp function', function () {
           });
       });
   });
+  it('responds to /signup dups error in username', function testSlash(done) {
+    request(server)
+      .post('/signup')
+      .send({
+        'email': "mikewalters015@gmail.com",
+        'username': 'username1',
+        'password': 'testPassword1'
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end(function (err, res) {
+        expect(res.body.return_msg).to.equal("Please confirm email");
+        request(server)
+          .post('/signup')
+          .send({
+            'email': "mikewalters0151@gmail.com",
+            'username': 'username1',
+            'password': 'testPassword1'
+          })
+          .expect('Content-Type', /json/)
+          .expect(422)
+          .end(function (err, res) {
+            expect(res.body.error).to.equal('Username is in use');
+            done();
+          });
+      });
+  });
 
   it('responds to /signup without password', function testSlash(done) {
     request(server)
       .post('/signup')
       .send({
         'email': "mikewalters015",
+        'username': 'username1',
         'password': ''
       })
       .expect('Content-Type', /json/)
@@ -69,6 +100,7 @@ describe('SignUp function', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
@@ -87,12 +119,13 @@ describe('Confirmation functions', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015@gmail.com",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function (err, res) {
-        expect(res.body.return_msg).to.equal("Plase confirm email");
+        expect(res.body.return_msg).to.equal("Please confirm email");
         User.findOne({ email: "mikewalters015@gmail.com" }, function(err, user) {
           request(server)
             .post('/confirmation')
@@ -114,12 +147,13 @@ describe('Confirmation functions', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015@gmail.com",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function (err, res) {
-        expect(res.body.return_msg).to.equal("Plase confirm email");
+        expect(res.body.return_msg).to.equal("Please confirm email");
         User.findOne({ email: "mikewalters015@gmail.com" }, function(err, user) {
           request(server)
             .post('/confirmation')
@@ -144,12 +178,13 @@ describe('Refresh Token functions', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015@gmail.com",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function (err, res) {
-        expect(res.body.return_msg).to.equal("Plase confirm email");
+        expect(res.body.return_msg).to.equal("Please confirm email");
         User.findOne({ email: "mikewalters015@gmail.com" }, function(err, user) {
           request(server)
             .post('/confirmation')
@@ -188,12 +223,13 @@ describe('Refresh Token functions', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015@gmail.com",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function (err, res) {
-        expect(res.body.return_msg).to.equal("Plase confirm email");
+        expect(res.body.return_msg).to.equal("Please confirm email");
         User.findOne({ email: "mikewalters015@gmail.com" }, function(err, user) {
           request(server)
             .post('/confirmation')
@@ -240,12 +276,13 @@ describe('Sign In Function', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015@gmail.com",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function (err, res) {
-        expect(res.body.return_msg).to.equal("Plase confirm email");
+        expect(res.body.return_msg).to.equal("Please confirm email");
         User.findOne({ email: "mikewalters015@gmail.com" }, function(err, user) {
           request(server)
             .post('/confirmation')
@@ -277,12 +314,13 @@ describe('Sign In Function', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015@gmail.com",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function (err, res) {
-        expect(res.body.return_msg).to.equal("Plase confirm email");
+        expect(res.body.return_msg).to.equal("Please confirm email");
         User.findOne({ email: "mikewalters015@gmail.com" }, function(err, user) {
           request(server)
             .post('/signin')
@@ -305,12 +343,13 @@ describe('Sign In Function', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015@gmail.com",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function (err, res) {
-        expect(res.body.return_msg).to.equal("Plase confirm email");
+        expect(res.body.return_msg).to.equal("Please confirm email");
         User.findOne({ email: "mikewalters015@gmail.com" }, function(err, user) {
           request(server)
             .post('/confirmation')
@@ -346,12 +385,13 @@ describe('Forgot Password', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015@gmail.com",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function (err, res) {
-        expect(res.body.return_msg).to.equal("Plase confirm email");
+        expect(res.body.return_msg).to.equal("Please confirm email");
         User.findOne({ email: "mikewalters015@gmail.com" }, function(err, user) {
           request(server)
             .post('/confirmation')
@@ -369,7 +409,6 @@ describe('Forgot Password', function () {
                 .expect('Content-Type', /json/)
                 .expect(200)
                 .end(function (err, res) {
-                  console.log(res.body)
                   expect(res.body.return_msg).to.equal('An e-mail has been sent to mikewalters015@gmail.com with further instructions.');
                   done();
                 });
@@ -413,12 +452,13 @@ describe('Reset Password', function () {
       .post('/signup')
       .send({
         'email': "mikewalters015@gmail.com",
+        'username': 'username1',
         'password': 'testPassword1'
       })
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function (err, res) {
-        expect(res.body.return_msg).to.equal("Plase confirm email");
+        expect(res.body.return_msg).to.equal("Please confirm email");
         User.findOne({ email: "mikewalters015@gmail.com" }, function(err, user) {
           request(server)
             .post('/confirmation')
