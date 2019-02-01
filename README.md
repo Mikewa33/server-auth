@@ -11,3 +11,4 @@ module.exports = {
   wrong_secret: "TestBS"
 }
 ```
+Currently being updated to a modern node.js and extra jwt
